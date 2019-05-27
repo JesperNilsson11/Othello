@@ -8,13 +8,13 @@ extern std::ofstream lines;
 extern std::ofstream times;
 extern std::ofstream nodes;
 
-//int nr = 0;
-//int nra = 0;
+int nr = 0;
+int nra = 0;
 
 struct Node {
 	std::vector<Node*> children;
 	int score;
-	//bool pruned = false;
+	bool pruned = false;
 
 	Node() = default;
 	~Node() {
@@ -88,8 +88,8 @@ void buildTree(const Board& b, Node* n, int level) {
 	}
 }
 
-void alphaBeta(const Board& b, Node* n, int level, int max, int min) {
-	//nra++;
+/*void alphaBeta(const Board& b, Node* n, int level, int max, int min) {
+	nra++;
 	if (level > 0) {
 		std::vector<PosMov> moves;
 		bool playersTurn = level % 2 == 0;
@@ -146,12 +146,12 @@ void alphaBeta(const Board& b, Node* n, int level, int max, int min) {
 		int m = n->children[0]->score;
 		if (playersTurn) {
 			for (auto c : n->children)
-				if (/*c->pruned == false &&*/ c->score > m)
+				if (c->score > m)
 					m = c->score;
 		}
 		else {
 			for (auto c : n->children)
-				if (/*c->pruned == false &&*/ c->score < m)
+				if ( c->score < m)
 					m = c->score;
 		}
 		n->score = m;
@@ -159,7 +159,7 @@ void alphaBeta(const Board& b, Node* n, int level, int max, int min) {
 	else {
 		n->score = calculateScore(b);
 	}
-}
+}*/
 
 void printTree(Node* n, int level) {
 	if (level == 1)
@@ -170,6 +170,73 @@ void printTree(Node* n, int level) {
 			printTree(c, level - 1);
 		}
 		of << "\t";
+	}
+}
+
+void alphaBeta(const Board& b, Node* n, int level, int max, int min) {
+	if (level > 0) {
+		std::vector<PosMov> moves;
+		bool playersTurn = level % 2 == 0;
+		b.updateMoves(playersTurn, &moves);
+
+		if (moves.size() == 0) {
+			n->children.push_back(new Node);
+			alphaBeta(b, n->children[0], level - 1, max, min);
+		}
+		else {
+			if (playersTurn) {
+				int value = -10000000;
+				for (unsigned int i = 0; i < moves.size(); ++i) {
+					Board nb(b);
+					Node* nn = new Node;
+					n->children.push_back(nn);
+					nb.movePlayer(moves[i].move, moves);
+					alphaBeta(nb, nn, level - 1, max, min);
+					if (value < n->children[i]->score)
+						value = n->children[i]->score;
+					if (max < value)
+						max = value;
+
+					if (max >= min) {
+						break;
+					}
+				}
+			}
+			else {
+				int value = 10000000;
+				for (unsigned int i = 0; i < moves.size(); ++i) {
+					Board nb(b);
+					Node* nn = new Node;
+					n->children.push_back(nn);
+					nb.moveOpponent(moves[i].move, moves);
+					alphaBeta(nb, nn, level - 1, max, min);
+					if (value > n->children[i]->score)
+						value = n->children[i]->score;
+					if (min > value)
+						min = value;
+
+					if (max >= min) {
+						break;
+					}
+				}
+			}
+		}
+
+		int m = n->children[0]->score;
+		if (playersTurn) {
+			for (auto c : n->children)
+				if (c->pruned == false && c->score > m)
+					m = c->score;
+		}
+		else {
+			for (auto c : n->children)
+				if (c->pruned == false && c->score < m)
+					m = c->score;
+		}
+		n->score = m;
+	}
+	else {
+		n->score = calculateScore(b);
 	}
 }
 
@@ -281,11 +348,15 @@ int AIMove(const Board& b) {
 	//}
 	//
 	//printDot(&head, -200, 200, 100);
-	//printDot(&alphaHead, -200, 200, 100);
+	pos.close();
+	lines.close();
+	pos.open("data.txt");
+	lines.open("lines.txt");
+	printDot(&alphaHead, -200, 200, 100);
 	
-	//of << nr << " " << nra << std::endl;
-	//nr = 0;
-	//nra = 0;
+	of << "nodes" << nr << " PT nodes " << nra << " children: " << alphaHead.children.size() <<  std::endl;
+	nr = 0;
+	nra = 0;
 
 	return (int)moves[index].move;
 }
