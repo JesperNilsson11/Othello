@@ -124,6 +124,7 @@ void alphaBeta(const Board& b, Node* n, int level, int max, int min) {
 				for (unsigned int i = 0; i < moves.size(); ++i) {
 					Board nb(b);
 					Node* nn = new Node;
+					nn->pruned = prune;
 					n->children.push_back(nn);
 					nb.moveOpponent(moves[i].move, moves);
 					alphaBeta(nb, nn, level - 1, max, min);
