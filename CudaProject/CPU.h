@@ -8,13 +8,13 @@ extern std::ofstream lines;
 extern std::ofstream times;
 extern std::ofstream nodes;
 
-//int nr = 0;
-//int nra = 0;
+int nr = 0;
+int nra = 0;
 
 struct Node {
 	std::vector<Node*> children;
 	int score;
-	//bool pruned = false;
+	bool pruned = false;
 
 	Node() = default;
 	~Node() {
@@ -146,12 +146,12 @@ void buildTree(const Board& b, Node* n, int level) {
 		int m = n->children[0]->score;
 		if (playersTurn) {
 			for (auto c : n->children)
-				if (/*c->pruned == false &&*/ c->score > m)
+				if (c->score > m)
 					m = c->score;
 		}
 		else {
 			for (auto c : n->children)
-				if (/*c->pruned == false &&*/ c->score < m)
+				if ( c->score < m)
 					m = c->score;
 		}
 		n->score = m;
@@ -159,7 +159,7 @@ void buildTree(const Board& b, Node* n, int level) {
 	else {
 		n->score = calculateScore(b);
 	}
-}
+}*/
 
 void printTree(Node* n, int level) {
 	if (level == 1)
@@ -171,9 +171,9 @@ void printTree(Node* n, int level) {
 		}
 		of << "\t";
 	}
-}*/
+}
+
 void alphaBeta(const Board& b, Node* n, int level, int max, int min) {
-	nra++;
 	if (level > 0) {
 		std::vector<PosMov> moves;
 		bool playersTurn = level % 2 == 0;
@@ -237,18 +237,6 @@ void alphaBeta(const Board& b, Node* n, int level, int max, int min) {
 	}
 	else {
 		n->score = calculateScore(b);
-	}
-}
-
-void printTree(Node* n, int level) {
-	if (level == 1)
-		of << n->score << " ";
-	else if (level > 1) {
-		//if (level == 2)of << n->children.size() << " ";
-		for (auto c : n->children) {
-			printTree(c, level - 1);
-		}
-		of << "\t";
 	}
 }
 
