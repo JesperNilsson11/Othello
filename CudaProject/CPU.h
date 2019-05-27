@@ -265,7 +265,7 @@ int AIMove(const Board& b) {
 	//Timer t;
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	start = std::chrono::steady_clock::now();
-	unsigned int index = 0;
+	unsigned int index = -1;
 	std::vector<PosMov> moves;
 	b.updateMoves(false, &moves);
 	//{
@@ -280,19 +280,21 @@ int AIMove(const Board& b) {
 		return -1;
 	}
 	else {*/
-		for (unsigned int i = 0; i < moves.size(); ++i) {
-			Board nb(b);
-			Node* n = new Node;
-			head.children.push_back(n);
-			nb.moveOpponent((int)moves[i].move, moves);
-			buildTree(nb, n, 4);
-		}
+		//for (unsigned int i = 0; i < moves.size(); ++i) {
+		//	Board nb(b);
+		//	Node* n = new Node;
+		//	head.children.push_back(n);
+		//	nb.moveOpponent((int)moves[i].move, moves);
+		//	buildTree(nb, n, 4);
+		//}
 	//}
-	head.score = head.children[0]->score;
-	for (unsigned int i = 1; i < moves.size(); ++i)
-		if (head.score > head.children[i]->score) {
+	//head.score = head.children[0]->score;
+	buildTree(b, &head, 5);
+	for (unsigned int i = 0; i < moves.size(); ++i)
+		if (head.score == head.children[i]->score) {
 			index = i;
-			head.score = head.children[i]->score;
+			break;
+			//head.score = head.children[i]->score;
 		}
 	//}
 
@@ -305,18 +307,20 @@ int AIMove(const Board& b) {
 	//{
 
 	Node alphaHead;
-	for (unsigned int i = 0; i < moves.size(); ++i) {
-		Board nb(b);
-		nb.moveOpponent((int)moves[i].move, moves);
-		Node* alphan = new Node;
-		alphaHead.children.push_back(alphan);
-		alphaBeta(nb, alphan, 4, -1000000, 10000000);
-	}
-	alphaHead.score = alphaHead.children[0]->score;
-	for (unsigned int i = 1; i < moves.size(); ++i)
-		if (alphaHead.score > alphaHead.children[i]->score) {
+	alphaBeta(b, &alphaHead, 5, -1000000, 10000000);
+	//for (unsigned int i = 0; i < moves.size(); ++i) {
+	//	Board nb(b);
+	//	nb.moveOpponent((int)moves[i].move, moves);
+	//	Node* alphan = new Node;
+	//	alphaHead.children.push_back(alphan);
+	//	alphaBeta(nb, alphan, 4, -1000000, 10000000);
+	//}
+	//alphaHead.score = alphaHead.children[0]->score;
+	for (unsigned int i = 0; i < moves.size(); ++i)
+		if (alphaHead.score == alphaHead.children[i]->score) {
 			aindex = i;
-			alphaHead.score = alphaHead.children[i]->score;
+			break;
+			//alphaHead.score = alphaHead.children[i]->score;
 		}
 	//}
 
