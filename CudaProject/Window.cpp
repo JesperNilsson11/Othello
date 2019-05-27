@@ -83,7 +83,8 @@ void gameLogic(HWND hwnd, int move) {
 			drawBoard(hwnd);
 			//aiMove = AIMove(b);
 			//Sleep(100);
-			PostMessage(hwnd, WM_USER, 0, 0);
+			if (moves.size() > 0)
+				PostMessage(hwnd, WM_USER, 0, 0);
 			/*// TEST
 			if (b.moveOpponent(aiMove, moves)) {
 				p_turn = !p_turn;
@@ -101,6 +102,8 @@ void gameLogic(HWND hwnd, int move) {
 	}
 
 	if (moves.size() == 0) {
+		if (p_turn && !gameOver())
+			PostMessage(hwnd, WM_USER, 0, 0);
 		p_turn = !p_turn;
 		b.updateMoves(p_turn, &moves);
 	}
@@ -145,7 +148,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		DestroyWindow(hwnd);
 		return 0;
 	case WM_USER:
-		Sleep(1000);
+		Sleep(100);
+		if (moves.size() == 0)
+			return 0;
 		int aiMove = AIMove(b);
 		gameLogic(hwnd, aiMove);
 		//SetWindowTextA(hwnd, "Its Working");

@@ -11,6 +11,8 @@ using namespace std;
 std::ofstream of;
 std::ofstream pos;
 std::ofstream lines;
+std::ofstream times;
+std::ofstream nodes;
 
 #define CUDA(call, string) cudaStatus = (call); if (cudaStatus != cudaSuccess) {cout << string << " " << cudaGetErrorString(cudaStatus) << endl; return cudaStatus;}
 #define CUDAE(call) CUDA(call, "Error")
@@ -100,6 +102,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 	Window window(hInstance, nCmdShow);
 	pos.open("data.txt");
 	lines.open("lines.txt");
+	//times.open("times.txt");
+	nodes.open("nodes.txt");
 	of.open("console.txt", std::ios_base::app);
 	of << "==============New Game==============" << std::endl;
 
@@ -186,6 +190,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 	of.close();
 	pos.close();
 	lines.close();
+	//times.close();
+	nodes.close();
 
 	return 0;
 }
