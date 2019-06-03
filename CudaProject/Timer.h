@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 #include <fstream>
+#include <iostream>
 
 extern std::ofstream of;
 
@@ -10,7 +11,7 @@ struct Timer {
 	}
 	~Timer() {
 		std::chrono::duration<float> dur = std::chrono::steady_clock::now() - start;
-		of << "Time " << (dur.count() *1000.f) << "ms" << std::endl;
+		std::cout << "Time " << (dur.count() *1000.f) << "ms" << std::endl;
 	}
 
 private:

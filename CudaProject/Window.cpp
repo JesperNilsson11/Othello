@@ -7,6 +7,9 @@
 //#define PorO(p) ((p) ? 'P': 'O')
 
 Board b = {};
+char* getCurrentBoard() {
+	return (char*)b.board;
+}
 bool p_turn = true;
 std::vector<PosMov> moves;
 /*char board[BOARDSIZE][BOARDSIZE] = {
@@ -187,7 +190,7 @@ Window::Window(HINSTANCE hins, int nCmdShow) {
 	hwnd = CreateWindowA(
 		//0,                              // Optional window styles.
 		"Reversi",                     // Window class
-		"Reversi",						// Window text
+		"Othello",						// Window text
 		style,            // Window style
 		// Size and position
 		CW_USEDEFAULT, CW_USEDEFAULT, r.right-r.left, r.bottom-r.top,

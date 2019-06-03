@@ -2,19 +2,22 @@
 #include "Board.h"
 #include "Timer.h"
 
+int maxMoves = 0;
+int cudaGetMove();
+
 extern std::ofstream of;
 extern std::ofstream pos;
 extern std::ofstream lines;
 extern std::ofstream times;
 extern std::ofstream nodes;
 
-int nr = 0;
-int nra = 0;
+//int nr = 0;
+//int nra = 0;
 
 struct Node {
 	std::vector<Node*> children;
 	int score;
-	bool pruned = false;
+	//bool pruned = false;
 
 	Node() = default;
 	~Node() {
@@ -44,6 +47,16 @@ void buildTree(const Board& b, Node* n, int level) {
 		std::vector<PosMov> moves;
 		bool playersTurn = level % 2 == 0;
 		b.updateMoves(playersTurn, &moves);
+
+		if (maxMoves < moves.size())
+			maxMoves = moves.size();
+
+		//if (level == 4) {
+		//	std::cout << "=====level4=====\n";
+		//	for (auto& p : moves)
+		//		std::cout << (int)p.move << " ";
+		//	std::cout << std::endl;
+		//}
 
 		if (moves.size() == 0) {
 			n->children.push_back(new Node);
@@ -87,7 +100,7 @@ void buildTree(const Board& b, Node* n, int level) {
 		n->score = calculateScore(b);
 	}
 }
-
+/*
 void alphaBeta(const Board& b, Node* n, int level, int max, int min) {
 	nra++;
 	if (level > 0) {
@@ -157,6 +170,7 @@ void alphaBeta(const Board& b, Node* n, int level, int max, int min) {
 		n->score = calculateScore(b);
 	}
 }
+*/
 
 void printTree(Node* n, int level) {
 	if (level == 1)
@@ -170,7 +184,7 @@ void printTree(Node* n, int level) {
 	}
 }
 
-/*void alphaBeta(const Board& b, Node* n, int level, int max, int min) {
+void alphaBeta(const Board& b, Node* n, int level, int max, int min) {
 	if (level > 0) {
 		std::vector<PosMov> moves;
 		bool playersTurn = level % 2 == 0;
@@ -235,8 +249,9 @@ void printTree(Node* n, int level) {
 	else {
 		n->score = calculateScore(b);
 	}
-}*/
+}
 
+/*
 void printDot(Node* n, float left, float right, float y) {
 	constexpr float step = 10;
 	float x = (right - left) / 2 + left;
@@ -250,6 +265,7 @@ void printDot(Node* n, float left, float right, float y) {
 		//data << start + i * width << " " << y - 10 << "\n";
 	}
 }
+*/
 
 int calcNodes(Node* n) {
 	int result = 1;
@@ -268,7 +284,11 @@ int AIMove(const Board& b) {
 	unsigned int index = -1;
 	std::vector<PosMov> moves;
 	b.updateMoves(false, &moves);
-	//{
+	if (maxMoves < moves.size())
+		maxMoves = moves.size();
+
+	//std::cout << "Max: " << maxMoves << " current: " << moves.size() << std::endl;
+	{
 
 	Node head;
 
@@ -296,15 +316,16 @@ int AIMove(const Board& b) {
 			break;
 			//head.score = head.children[i]->score;
 		}
-	//}
+	}
 
 	std::chrono::duration<float> dur = std::chrono::steady_clock::now() - start;
 
-	//times << (dur.count() *1000.f) << " ";
+	times << (dur.count() *1000.f) << " ";
+	std::cout << (dur.count() *1000.f) << " ms cpu time\n";
 
 	start = std::chrono::steady_clock::now();
-	unsigned int aindex = 0;
-	//{
+	unsigned int aindex = -3;
+	{
 
 	Node alphaHead;
 	alphaBeta(b, &alphaHead, 5, -1000000, 10000000);
@@ -322,15 +343,24 @@ int AIMove(const Board& b) {
 			break;
 			//alphaHead.score = alphaHead.children[i]->score;
 		}
-	//}
+	}
 
 	dur = std::chrono::steady_clock::now() - start;
-	//times << (dur.count() *1000.f) << "\n";
+	times << (dur.count() *1000.f) << "\n";
+
+	std::cout << "========================\nCPU " << (int)moves[index].move << std::endl;
+	//for (auto& p : moves)
+	//	std::cout << (int)p.move << " ";
+	std::cout << "\nGPU" << std::endl;
+	int cudaMove = cudaGetMove();
+
+	if (cudaMove != moves[index].move)
+		std::cout << "NOT SAME MOVE!" << std::endl;
 
 	if (aindex != index)
 		throw "aja";
 
-	nodes << calcNodes(&head) << " " << calcNodes(&alphaHead) << "\n";
+	//nodes << calcNodes(&head) << " " << calcNodes(&alphaHead) << "\n";
 	
 	/*of << head.score << "\n";
 	std::vector<Node*> stack;
@@ -349,11 +379,11 @@ int AIMove(const Board& b) {
 	lines.close();
 	pos.open("data.txt");
 	lines.open("lines.txt");
-	printDot(&alphaHead, -200, 200, 100);
+	//printDot(&alphaHead, -200, 200, 100);
 	
-	of << "nodes" << nr << " PT nodes " << nra << " children: " << alphaHead.children.size() <<  std::endl;
-	nr = 0;
-	nra = 0;
+	//of << "nodes" << nr << " PT nodes " << nra << " children: " << alphaHead.children.size() <<  std::endl;
+	//nr = 0;
+	//nra = 0;
 
 	return (int)moves[index].move;
 }

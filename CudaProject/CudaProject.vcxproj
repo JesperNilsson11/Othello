@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Board.h" />
+    <ClInclude Include="console.h" />
     <ClInclude Include="CPU.h" />
     <ClInclude Include="Header.h" />
     <ClInclude Include="Timer.h" />
