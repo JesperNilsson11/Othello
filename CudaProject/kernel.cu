@@ -376,6 +376,8 @@ __device__ void* NEW(int b) {
 __global__ void getMoveKernel(char* board, CUDANode* node, int level) {
 	__shared__ char* newBoards[30];
 	__shared__ cudaStream_t s[30];
+	__shared__ int scores[30];
+	__shared__ char indices[30];
 	//if (level == 5)
 	//	d_write = 0;
 	//printf("Start %d\n", level);
@@ -449,38 +451,63 @@ __global__ void getMoveKernel(char* board, CUDANode* node, int level) {
 			//	delete[] newBoards[i];
 		}
 
-		if (threadIdx.x == 0 && threadIdx.y == 0) {
-
-		int temp = node->children[0]->score;
-		int index = 0;
-		if (player == 'P') {
-			for (int i = 1; i < moves.nr; ++i) {
-				if (temp < node->children[i]->score) {
-					temp = node->children[i]->score;
-					index = i;
+		if (id < moves.nr) {
+			scores[id] = node->children[id]->score;
+			indices[id] = id;
+			// doesnt need syncthreads since less than warp size
+			if (player == 'P') {
+				for (int step = (moves.nr + 1) / 2; id < step && step > 0; (step + 1) / 2) {
+					if (id + step < moves.nr && scores[id] < scores[id + step]) {
+						scores[id] = scores[id + step];
+						indices[id] = indices[id + step];
+					}
 				}
 			}
-		}
-		else {
-			for (int i = 1; i < moves.nr; ++i) {
-				if (temp > node->children[i]->score) {
-					temp = node->children[i]->score;
-					index = i;
+			else {
+				for (int step = (moves.nr + 1) / 2; id < step && step > 0; (step + 1) / 2) {
+					if (id + step < moves.nr) {
+						if (scores[id] < scores[id + step]) {
+							scores[id] = scores[id + step];
+							indices[id] = indices[id + step];
+						}
+						else if (scores[id] == scores[id + step] && moves.moves[id].move < moves.moves[id + step].move)
+							indices[id] = indices[id + step];
+					}
 				}
-				else if (temp == node->children[i]->score && moves.moves[i].move < moves.moves[index].move)
-					index = i;// gpu chose lowest move same as cpu
 			}
-		}
-		node->score = temp;
 
-		if (level == 5) {
-			//for (int i = 0; i < moves->nr; ++i)
-			//	printf("%d ", moves->moves[i].move);
+		//int temp = node->children[0]->score;
+		//int index = 0;
+		//if (player == 'P') {
+		//	for (int i = 1; i < moves.nr; ++i) {
+		//		if (temp < node->children[i]->score) {
+		//			temp = node->children[i]->score;
+		//			index = i;
+		//		}
+		//	}
+		//}
+		//else {
+		//	for (int i = 1; i < moves.nr; ++i) {
+		//		if (temp > node->children[i]->score) {
+		//			temp = node->children[i]->score;
+		//			index = i;
+		//		}
+		//		else if (temp == node->children[i]->score && moves.moves[i].move < moves.moves[index].move)
+		//			index = i;// gpu chose lowest move same as cpu
+		//	}
+		//}
+			if (id == 0) {
+				node->score = scores[0];
 
-			result = moves.moves[index].move;
+				if (level == 5) {
+					//for (int i = 0; i < moves->nr; ++i)
+					//	printf("%d ", moves->moves[i].move);
 
-			//printf("\nresult cuda %d\n", result);
-		}
+					result = moves.moves[indices[0]].move;
+
+					//printf("\nresult cuda %d\n", result);
+				}
+			}
 		}
 
 
