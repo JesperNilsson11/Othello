@@ -79,6 +79,7 @@ bool Board::possibleMove(PosMov* pm, bool p) const {
 }
 
 void Board::updateMoves(bool p, std::vector<PosMov>* moves) const {
+	//std::cout << "cpu update moves\n";
 	//Timer timer;
 	PosMov pm;
 	moves->clear();

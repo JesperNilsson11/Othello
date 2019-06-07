@@ -3,6 +3,7 @@
 #include "Timer.h"
 
 int maxMoves = 0;
+void cudaTestMove();
 int cudaGetMove();
 
 extern std::ofstream of;
@@ -316,6 +317,8 @@ int AIMove(const Board& b) {
 			break;
 			//head.score = head.children[i]->score;
 		}
+
+	std::cout << "number of nodes" << calcNodes(&head) << std::endl;
 	}
 
 	std::chrono::duration<float> dur = std::chrono::steady_clock::now() - start;
@@ -353,12 +356,13 @@ int AIMove(const Board& b) {
 	//	std::cout << (int)p.move << " ";
 	std::cout << "\nGPU" << std::endl;
 	int cudaMove = cudaGetMove();
-
+	cudaTestMove();
+	
 	if (cudaMove != moves[index].move)
 		std::cout << "NOT SAME MOVE!" << std::endl;
 
-	if (aindex != index)
-		throw "aja";
+	//if (aindex != index)
+	//	throw "aja";
 
 	//nodes << calcNodes(&head) << " " << calcNodes(&alphaHead) << "\n";
 	
