@@ -374,6 +374,8 @@ __device__ void* NEW(int b) {
 // NOT CALLING MOVE KERNAL
 #if 1
 __global__ void getMoveKernel(char* board, CUDANode* node, int level) {
+	//if (level < 5)
+	//	return;
 	__shared__ char* newBoards[30];
 	__shared__ cudaStream_t s[30];
 	__shared__ int scores[30];
@@ -423,6 +425,7 @@ __global__ void getMoveKernel(char* board, CUDANode* node, int level) {
 				getMoveKernel << <1, threads >> > (newBoards[0], node->children[0], level - 1);
 				cudaDeviceSynchronize();
 			}
+			
 			//delete[] newBoards[0];
 		}
 		else {
@@ -445,18 +448,20 @@ __global__ void getMoveKernel(char* board, CUDANode* node, int level) {
 				//getMoveKernel << <1, 1 >> > (newBoards[i], node->children[i], level - 1);
 			}
 			//printf("level %d\n", level);
-
-			cudaDeviceSynchronize();
+			if (id == 0)
+				cudaDeviceSynchronize();
+			__syncthreads();
+		
 			//for (int i = 0; i < moves->nr; ++i)
 			//	delete[] newBoards[i];
 		}
-
 		if (id < moves.nr) {
+			//printf("testing\n");
 			scores[id] = node->children[id]->score;
 			indices[id] = id;
 			// doesnt need syncthreads since less than warp size
 			if (player == 'P') {
-				for (int step = (moves.nr + 1) / 2; id < step && step > 0; (step + 1) / 2) {
+				for (int step = (moves.nr + 1) / 2; id < step && step > 1; (step + 1) / 2) {
 					if (id + step < moves.nr && scores[id] < scores[id + step]) {
 						scores[id] = scores[id + step];
 						indices[id] = indices[id + step];
@@ -464,7 +469,7 @@ __global__ void getMoveKernel(char* board, CUDANode* node, int level) {
 				}
 			}
 			else {
-				for (int step = (moves.nr + 1) / 2; id < step && step > 0; (step + 1) / 2) {
+				for (int step = (moves.nr + 1) / 2; id < step && step > 1; (step + 1) / 2) {
 					if (id + step < moves.nr) {
 						if (scores[id] < scores[id + step]) {
 							scores[id] = scores[id + step];
